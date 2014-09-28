@@ -506,12 +506,19 @@ define(function (require, exports, module) {
         
         // Now we know there is at least one other range -> found out which one this is
         var index = this._ranges.indexOf(range);
-        
+
         // If the range to be removed is the selected one, first switch to another one
         if (index === this._selectedRangeIndex) {
             // If possible, select the one below, else select the one above
             if (index + 1 < this._ranges.length) {
-                this.setSelectedIndex(index + 1);
+                var nextRange = this._ranges[index + 1],
+                    nextStart = nextRange.textRange.startLine
+                // it might be the case that we've also deleted the next possible
+                // range, so make sure we're selecting something that actually
+                // exists in the document!
+                if (this.editor.document.getLine(nextStart)) {
+                    this.setSelectedIndex(index + 1);
+                }
             } else {
                 this.setSelectedIndex(index - 1);
             }
