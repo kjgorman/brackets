@@ -1780,26 +1780,14 @@ define(function (require, exports, module) {
      * @return {string} The selector(s) for the rule in the range.
      */
     function getRangeSelectors(range) {
-        // There's currently no immediate way to access a given line in a Document, because it's just
-        // stored as a string. Eventually, we should have Documents cache the lines in the document
-        // as well, or make them use CodeMirror documents which do the same thing.
-        var i, startIndex = 0, endIndex, text = range.document.getText();
-        for (i = 0; i < range.startLine; i++) {
-            startIndex = text.indexOf("\n", startIndex) + 1;
-        }
-        endIndex = startIndex;
-        // Go one line past the end line. We'll extract text up to but not including the last newline.
-        for (i = range.startLine + 1; i <= range.endLine + 1; i++) {
-            endIndex = text.indexOf("\n", endIndex) + 1;
-        }
-        var allSelectors = extractAllSelectors(text.substring(startIndex, endIndex));
-        
+        var allSelectors = extractAllSelectors(range.getRangeContents());
+
         // There should only be one rule in the range, and if there are multiple selectors for
         // the first rule, they'll all be recorded in the "selectorGroup" for the first selector,
         // so we only need to look at the first one.
         return (allSelectors.length ? allSelectors[0].selectorGroup || allSelectors[0].selector : "");
     }
-        
+
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
     exports.extractAllSelectors = extractAllSelectors;

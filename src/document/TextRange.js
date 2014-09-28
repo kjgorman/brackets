@@ -193,22 +193,38 @@ define(function (require, exports, module) {
             $(this).triggerHandler("contentChange");
         }
     };
-    
+
     TextRange.prototype._handleDocumentChange = function (event, doc, changeList) {
         this._applyChangesToRange(changeList);
     };
-    
+
     TextRange.prototype._handleDocumentDeleted = function (event) {
         $(this).triggerHandler("lostSync");
     };
-    
-    
+
+    TextRange.prototype.getRangeContents = function () {
+        // There's currently no immediate way to access a given line in a Document, because it's just
+        // stored as a string. Eventually, we should have Documents cache the lines in the document
+        // as well, or make them use CodeMirror documents which do the same thing.
+        var i, startIndex = 0, endIndex, text = this.document.getText();
+        for (i = 0; i < this.startLine; i++) {
+            startIndex = text.indexOf("\n", startIndex) + 1;
+        }
+        endIndex = startIndex;
+        // Go one line past the end line. We'll extract text up to but not including the last newline.
+        for (i = this.startLine + 1; i <= this.endLine + 1; i++) {
+            endIndex = text.indexOf("\n", endIndex) + 1;
+        }
+
+        return text.substring(startIndex, endIndex);
+    }
+
     /* (pretty toString(), to aid debugging) */
     TextRange.prototype.toString = function () {
         return "[TextRange " + this.startLine + "-" + this.endLine + " in " + this.document + "]";
     };
-    
-    
+
+
     // Define public API
     exports.TextRange = TextRange;
 });

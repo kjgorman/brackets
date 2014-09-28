@@ -135,45 +135,62 @@ define(function (require, exports, module) {
         var self = this,
             $rangeItem = $("<li/>"),
             $rangeListChildren = this.$rangeList.children();
-        
+
         if (index === undefined || index === $rangeListChildren.length) {
             $rangeItem.appendTo(this.$rangeList);
         } else {
             $rangeItem.insertBefore($rangeListChildren.get(index));
         }
-        
+
         _updateRangeLabel($rangeItem, range);
         $rangeItem.mousedown(function () {
             self.setSelectedIndex(self._ranges.indexOf(range));
         });
 
         range.$listItem = $rangeItem;
-        
+
         // Update list item as TextRange changes
         $(range.textRange).on("change", function () {
             _updateRangeLabel($rangeItem, range);
         }).on("contentChange", function () {
             _updateRangeLabel($rangeItem, range, self._labelCB);
+            self._removeRangeWhenEmpty(range);
         });
-        
+
         // If TextRange lost sync, remove it from the list (and close the widget if no other ranges are left)
         $(range.textRange).on("lostSync", function () {
             self._removeRange(range);
         });
     };
 
-    /** 
+    /**
+     * @private
+     *
+     * Test whether the inline edit range actually has any non-whitespace content.
+     *
+     * @param {SearchResultItem} range The range for the changing inline editor
+     */
+    MultiRangeInlineEditor.prototype._removeRangeWhenEmpty = function (range) {
+        var textRange     = range.textRange,
+            selectionBody = textRange.getRangeContents();
+
+        if (selectionBody.trim().length === 0) {
+            this._removeRange(range);
+        }
+    }
+
+    /**
      * @override
      * @param {!Editor} hostEditor  Outer Editor instance that inline editor will sit within.
-     * 
+     *
      */
     MultiRangeInlineEditor.prototype.load = function (hostEditor) {
         MultiRangeInlineEditor.prototype.parentClass.load.apply(this, arguments);
-        
+
         // Create the message area
         this.$messageDiv = $("<div/>")
             .addClass("inline-editor-message");
-        
+
         // Prevent touch scroll events from bubbling up to the parent editor.
         this.$editorHolder.on("mousewheel.MultiRangeInlineEditor", function (e) {
             e.stopPropagation();
